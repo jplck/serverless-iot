@@ -11,16 +11,6 @@ using System.IO;
 
 namespace vehicle_service_signalr_functions
 {
-    public struct DeviceUserBinding
-    {
-        [JsonProperty("deviceId")]
-        public string DeviceId { get; set; }
-        [JsonProperty("aadUserId")]
-        public string AADUserId { get; set; }
-        [JsonProperty("userId")]
-        public string UserId { get; set; }
-    }
-
     public static class UserDevice
     {
         [FunctionName("AddDeviceIdUserPairing")]
@@ -56,6 +46,32 @@ namespace vehicle_service_signalr_functions
             }
 
             return await Task.FromResult(new CreatedResult("user/device", $"Pairing created"));
+        }
+
+        [FunctionName("GetUserDevices")]
+        public static async Task<IActionResult> GetUserDevices(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "user/devices/")] HttpRequest req,
+            ILogger log,
+            ClaimsPrincipal claimsPrincipal)
+        {
+            if (claimsPrincipal?.Identity.IsAuthenticated ?? false)
+            {
+                //Use the object ID as AADUserId. The negotiate function is not using the name prncipal (sub) 
+                var aadUserId = claimsPrincipal.Claims.ToList().Find(r => r.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+
+                if (string.IsNullOrWhiteSpace(aadUserId))
+                {
+                    return await Task.FromResult(new BadRequestResult());
+                }
+
+                var devices = DemonstratorCommon.Instance.GetDevicesForUser(aadUserId);
+                var devicesJson = JsonConvert.SerializeObject(devices);
+                return new OkObjectResult(devicesJson);
+            }
+            else
+            {
+                return await Task.FromResult(new UnauthorizedResult());
+            }
         }
 
     }

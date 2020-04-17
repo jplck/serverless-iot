@@ -24,7 +24,7 @@ namespace vehicle_service_signalr_functions
                     .Where(x => x.Key == "iothub-connection-device-id")
                     .FirstOrDefault();
 
-                var userId = DemonstratorCommon.GetUserForDevice((string)deviceId.Value, log);
+                var userId = DemonstratorCommon.Instance.GetUserForDevice((string)deviceId.Value, log);
 
                 if (userId != string.Empty)
                 {
