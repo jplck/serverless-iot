@@ -23,29 +23,20 @@ namespace vehicle_service_signalr_functions
             ClaimsPrincipal claimsPrincipal)
         {
 
-            if (claimsPrincipal?.Identity.IsAuthenticated ?? false)
+            var aadUserId = ValidateAuth(claimsPrincipal);
+
+            if (!string.IsNullOrWhiteSpace(aadUserId))
             {
-                //Use the object ID as AADUserId. The negotiate function is not using the name prncipal (sub) 
-                var aadUserId = claimsPrincipal.Claims.ToList().Find(r => r.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-
-                if (string.IsNullOrWhiteSpace(aadUserId) || string.IsNullOrWhiteSpace(requestBody))
-                {
-                    return await Task.FromResult(new BadRequestResult());
-                }
-
                 DeviceUserBinding payload = JsonConvert.DeserializeObject<DeviceUserBinding>(requestBody);
                 payload.AADUserId = aadUserId;
 
                 await binding.AddAsync(payload);
                 log.LogInformation("DeviceId/User paring added.");
-            }
-            else
-            {
-                return await Task.FromResult(new UnauthorizedResult());
+                return await Task.FromResult(new CreatedResult("user/device", $"Pairing created"));
             }
 
-            return await Task.FromResult(new CreatedResult("user/device", $"Pairing created"));
+            return await Task.FromResult(new UnauthorizedResult());
         }
 
         [FunctionName("GetUserDevices")]
@@ -54,24 +45,26 @@ namespace vehicle_service_signalr_functions
             ILogger log,
             ClaimsPrincipal claimsPrincipal)
         {
-            if (claimsPrincipal?.Identity.IsAuthenticated ?? false)
+            var aadUserId = ValidateAuth(claimsPrincipal);
+            if (!string.IsNullOrWhiteSpace(aadUserId))
             {
-                //Use the object ID as AADUserId. The negotiate function is not using the name prncipal (sub) 
-                var aadUserId = claimsPrincipal.Claims.ToList().Find(r => r.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-
-                if (string.IsNullOrWhiteSpace(aadUserId))
-                {
-                    return await Task.FromResult(new BadRequestResult());
-                }
-
-                var devices = DemonstratorCommon.Instance.GetDevicesForUser(aadUserId);
+                var devices = CosmosHelper.Instance.GetDevicesForUser(aadUserId);
                 var devicesJson = JsonConvert.SerializeObject(devices);
                 return new OkObjectResult(devicesJson);
             }
-            else
+
+            return await Task.FromResult(new UnauthorizedResult());
+        }
+
+        private static string ValidateAuth(ClaimsPrincipal claimsPrincipal)
+        {
+            if (claimsPrincipal?.Identity.IsAuthenticated ?? false)
             {
-                return await Task.FromResult(new UnauthorizedResult());
+                var aadUserId = claimsPrincipal.Claims.ToList().Find(r => r.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value ?? string.Empty;
+                return aadUserId ?? string.Empty;
             }
+            return string.Empty;
+
         }
 
     }

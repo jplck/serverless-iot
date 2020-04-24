@@ -10,11 +10,12 @@ namespace vehicle_service_signalr_functions
 {
     public static class DispatchToUserFrontend
     {
-        [FunctionName("DispatchToUserFrontend")]
+        [FunctionName("DispatchOrchestrator")]
         public static async Task DispatchToUser(
-        [EventHubTrigger("iotdemonstratorhub1", Connection = "IoTDemonstratorIoTHubConnection")] EventData[] events,
-        [SignalR(HubName = "demonstratorhub")] IAsyncCollector<SignalRMessage> signalRMessages,
-        ILogger log)
+            [EventHubTrigger("iotdemonstratorhub1", Connection = "IoTDemonstratorIoTHubConnection")] EventData[] events,
+            [SignalR(HubName = "demonstratorhub")] IAsyncCollector<SignalRMessage> signalRMessages,
+            ILogger log
+        )
         {
             foreach (EventData eventData in events)
             {
@@ -24,9 +25,10 @@ namespace vehicle_service_signalr_functions
                     .Where(x => x.Key == "iothub-connection-device-id")
                     .FirstOrDefault();
 
-                var userId = DemonstratorCommon.Instance.GetUserForDevice((string)deviceId.Value, log);
+                var binding = CosmosHelper.Instance.GetUserForDevice((string)deviceId.Value, log);
+                var userId = binding.AADUserId;
 
-                if (userId != string.Empty)
+                if (!string.IsNullOrWhiteSpace(userId))
                 {
                     log.LogInformation(userId);
 
