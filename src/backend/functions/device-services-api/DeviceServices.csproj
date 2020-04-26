@@ -6,7 +6,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.20.1" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.25.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.31" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="3.0.5" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.35" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

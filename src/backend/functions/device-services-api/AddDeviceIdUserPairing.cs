@@ -8,11 +8,16 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using Microsoft.Azure.Documents.Client;
+using System;
 
 namespace vehicle_service_signalr_functions
 {
     public static class UserDevice
     {
+        private const string dbName = "devicedata";
+        private const string collectionName = "deviceusers";
+        
         [FunctionName("AddDeviceIdUserPairing")]
         public static async Task<IActionResult> AddDeviceIdUserPairing(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user/devices/")] HttpRequest req,
@@ -23,7 +28,7 @@ namespace vehicle_service_signalr_functions
             ClaimsPrincipal claimsPrincipal)
         {
 
-            var aadUserId = ValidateAuth(claimsPrincipal);
+            var aadUserId = Shared.ValidateAuth(claimsPrincipal);
 
             if (!string.IsNullOrWhiteSpace(aadUserId))
             {
@@ -42,29 +47,33 @@ namespace vehicle_service_signalr_functions
         [FunctionName("GetUserDevices")]
         public static async Task<IActionResult> GetUserDevices(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "user/devices/")] HttpRequest req,
+            [CosmosDB(databaseName: "devicedata",
+                      collectionName: "deviceusers",
+                      ConnectionStringSetting = "DeviceUserDBConnectionString")] DocumentClient client,
             ILogger log,
             ClaimsPrincipal claimsPrincipal)
         {
-            var aadUserId = ValidateAuth(claimsPrincipal);
+            var aadUserId = Shared.ValidateAuth(claimsPrincipal);
+
             if (!string.IsNullOrWhiteSpace(aadUserId))
             {
-                var devices = CosmosHelper.Instance.GetDevicesForUser(aadUserId);
-                var devicesJson = JsonConvert.SerializeObject(devices);
-                return new OkObjectResult(devicesJson);
+                var options = new FeedOptions
+                {
+                    EnableCrossPartitionQuery = true
+                };
+
+                Uri collectionUri = UriFactory.CreateDocumentCollectionUri(dbName, collectionName);
+
+                var devices = client.CreateDocumentQuery<DeviceUserBinding>(collectionUri, options)
+                    .Where(x => x.AADUserId == aadUserId)
+                    .ToList();
+
+                var deviceList = new UserDevices();
+                deviceList.Devices = devices;
+                return await Task.FromResult(new OkObjectResult(deviceList));
             }
 
             return await Task.FromResult(new UnauthorizedResult());
-        }
-
-        private static string ValidateAuth(ClaimsPrincipal claimsPrincipal)
-        {
-            if (claimsPrincipal?.Identity.IsAuthenticated ?? false)
-            {
-                var aadUserId = claimsPrincipal.Claims.ToList().Find(r => r.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value ?? string.Empty;
-                return aadUserId ?? string.Empty;
-            }
-            return string.Empty;
-
         }
 
     }
