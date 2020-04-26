@@ -8,19 +8,19 @@ class Content extends React.Component {
                 <div>Token: {this.props.apiToken}</div>
                 <div><a href="#" onClick={this.props.logout}>Logout</a></div>
                 <p>
-                    Machine Temperature {this.props.machine.temperature}
+                    Machine Temperature {this.props.telemetry.temperature}
                 </p>
                 <p>
-                    Machine Pressure: {this.props.machine.pressure}
+                    Machine Pressure: {this.props.telemetry.pressure}
                 </p>
                 <p>
-                    Ambient Temperature: {this.props.ambient.temperature}
+                    Ambient Temperature: {this.props.telemetry.temperature}
                 </p>
                 <p>
-                    Ambient Humidity: {this.props.ambient.humidity}
+                    Ambient Humidity: {this.props.telemetry.humidity}
                 </p>
                 <p>
-                    Measurement Date: {this.props.measurementDate}
+                    Measurement Date: {this.props.telemetry.measurementDate}
                 </p>
             </div>
         )

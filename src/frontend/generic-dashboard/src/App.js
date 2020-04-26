@@ -26,17 +26,14 @@ class App extends React.Component {
       apiToken: '',
       signalrConnected: false,
       scopes: [config.graphScope, process.env.REACT_APP_API_SCOPE],
-      machine: 
+      telemetry: 
       {
         temperature: 0.0,
-        pressure: 0.0
-      },
-      ambient: 
-      {
-        temperature: 0.0,
-        humidity: 0.0
-      },
-      measurementDate: (new Date()).toISOString()
+        pressure: 0.0,
+        ambientTemperature: 0.0,
+        humidity: 0.0,
+        measurementDate: (new Date()).toISOString()
+      }
     }
   }
 
@@ -96,19 +93,10 @@ class App extends React.Component {
     })
 
     hubConnectionRef.on(config.signalrPipeName, (telemetryJson) => {
-      var telemetry = JSON.parse(telemetryJson)
+      var receivedTelemetry = JSON.parse(telemetryJson)
+      console.log(receivedTelemetry)
       this.setState({
-        machine: 
-        {
-          temperature: telemetry.machine.temperature,
-          pressure: telemetry.machine.pressure
-        },
-        ambient: 
-        {
-          temperature: telemetry.ambient.pressure,
-          humidity: telemetry.ambient.humidity
-        },
-        measurementDate: telemetry.timeCreated
+        telemetry: receivedTelemetry
       })
     })
 
@@ -133,7 +121,7 @@ class App extends React.Component {
   render() {
     var content
     if (this.state.isAuthenticated) {
-      content = <Content apiToken={this.state.apiToken.accessToken} machine={this.state.machine} ambient={this.state.ambient} logout={this.logout} />
+      content = <Content apiToken={this.state.apiToken.accessToken} telemetry={this.state.telemetry} logout={this.logout} />
     } else {
       content = <div><a href="#" onClick={this.login}>Login</a></div>
     }
