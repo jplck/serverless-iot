@@ -6,6 +6,8 @@ read RG_NAME
 echo "Enter Resource Group location (e.g. westeurope): "
 read RG_LOC
 
+SUBSCRIPTION_ID=$(az account show --query "id" | tr -d '"')
+
 #create resource group
 echo "Create resource group with name $RG_NAME in ${RG_LOC}"
 az group create -n $RG_NAME -l $RG_LOC --output none
@@ -64,10 +66,42 @@ echo "Creating cosmosdb container with name $COSMOS_CONTAINER_NAME and partition
 az cosmosdb sql container create -g $RG_NAME -a $COSMOS_NAME -d $COSMOS_DB_NAME -n $COSMOS_CONTAINER_NAME --partition-key-path $COSMOS_CONTAINER_PARTITION_KEY --throughput "400" --output none
 echo "done"
 
+#creating iot hub
+IOT_HUB_NAME="${APP_PREFIX}hub352225ghtf46"
+IOT_HUB_EVENTHUB_NS_NAME="${APP_PREFIX}eventhubns124"
+IOT_HUB_EVENTHUB_NAME="${APP_PREFIX}eventhub124"
+IOT_HUB_EVENTHUB_AUTH_RULE_NAME="owner"
+IOT_HUB_ROUTE_ENDPOINT_NAME="Telemetry"
+IOT_HUB_ROUTE_NAME="TelemetryRoute"
+echo "Creating IoT Hub with name $IOT_HUB_NAME..."
+az iot hub create -g $RG_NAME -n $IOT_HUB_NAME --sku S1 --partition-count 2 -l $RG_LOC
+IOT_HUB_CONNECTION_STR=$(az iot hub show-connection-string -n iotdemonstratorhub1 -g iotdemonstrator --query "connectionString" | tr -d '"')
+#create iot hub event hub
+echo "Creating Event Hub Namespace with name $IOT_HUB_EVENTHUB_NS_NAME..."
+az eventhubs namespace create --resource-group $RG_NAME --name $IOT_HUB_EVENTHUB_NS_NAME --location $RG_LOC --sku Standard --enable-auto-inflate --maximum-throughput-units 2 --output none
+echo "Creating Event Hub with name $IOT_HUB_EVENTHUB_NAME..."
+az eventhubs eventhub create --resource-group $RG_NAME --namespace-name $IOT_HUB_EVENTHUB_NS_NAME --name $IOT_HUB_EVENTHUB_NAME --message-retention 4 --partition-count 3 --output none
+echo "Creating Event Hub auth rule with name $IOT_HUB_EVENTHUB_AUTH_RULE_NAME..."
+az eventhubs eventhub authorization-rule create --resource-group $RG_NAME --namespace-name $IOT_HUB_EVENTHUB_NS_NAME --eventhub-name $IOT_HUB_EVENTHUB_NAME --name $IOT_HUB_EVENTHUB_AUTH_RULE_NAME --rights Manage Listen Send --output none
+IOT_HUB_EVENT_HUB_CONNECTION_STR=$(az eventhubs eventhub authorization-rule keys list --resource-group $RG_NAME --namespace-name $IOT_HUB_EVENTHUB_NS_NAME --eventhub-name $IOT_HUB_EVENTHUB_NAME --name $IOT_HUB_EVENTHUB_AUTH_RULE_NAME --query "primaryConnectionString" | tr -d '"') --output none
+echo "Creating IoT Hub custom endpoint $IOT_HUB_ROUTE_ENDPOINT_NAME..."
+az iot hub routing-endpoint create --resource-group $RG_NAME --hub-name $IOT_HUB_NAME --endpoint-name $IOT_HUB_ROUTE_ENDPOINT_NAME --endpoint-type eventhub --endpoint-resource-group $RG_NAME --endpoint-subscription-id $SUBSCRIPTION_ID --connection-string $IOT_HUB_EVENT_HUB_CONNECTION_STR --output none
+echo "Creating IoT Hub route $IOT_HUB_ROUTE_NAME..."
+az iot hub route create -g $RG_NAME --hub-name $IOT_HUB_NAME --endpoint-name $IOT_HUB_ROUTE_ENDPOINT_NAME --source-type DeviceMessages --route-name $IOT_HUB_ROUTE_NAME --output none
+
 #setting up azure functions
-echo "Enter name of websocket function app: "
-read FUNC_WEBSOCKET_NAME
-echo "Enter name of device service function app: "
-read FUNC_DEV_SERVICES_NAME
+FUNC_WEBSOCKET_NAME="${APP_PREFIX}funcsignalr"
+FUNC_WEBSOCKET_STORAGE_NAME="${APP_PREFIX}stor"
+echo "Creating function app for telemetry streaming with name $FUNC_WEBSOCKET_NAME..."
+az storage account create -n $FUNC_WEBSOCKET_STORAGE_NAME -g $RG_NAME -l $RG_LOC --sku Standard_LRS --kind "StorageV2" --output none
+az functionapp create -g RG_NAME --consumption-plan-location $RG_LOC -n FUNC_WEBSOCKET_NAME --os-type Windows --runtime dotnet --storage-acount $FUNC_WEBSOCKET_STORAGE_NAME
+az functionapp config appsettings set -n $FUNC_WEBSOCKET_NAME -g $RG_NAME --settings "DeviceUserDBConnectionString=$COSMOS_DB_CONNECTION_STR IoTDemonstratorServiceConnect=$IOT_HUB_CONNECTION_STR"
+
+FUNC_DEVICE_SERVICES_NAME="${APP_PREFIX}funcdeviceservices"
+FUNC_DEVICE_SERVICES_STORAGE_NAME="${APP_PREFIX}stor2"
+echo "Creating function app for device services with name $FUNC_DEVICE_SERVICES_NAME..."
+az storage account create -n $FUNC_DEVICE_SERVICES_STORAGE_NAME -g $RG_NAME -l $RG_LOC --sku Standard_LRS --kind "StorageV2" --output none
+az functionapp create -g RG_NAME --consumption-plan-location $RG_LOC -n FUNC_DEVICE_SERVICES_NAME --os-type Windows --runtime dotnet --storage-acount $FUNC_DEVICE_SERVICES_STORAGE_NAME
+az functionapp config appsettings set -n $FUNC_DEVICE_SERVICES_NAME -g $RG_NAME --settings "DeviceUserDBConnectionString=$COSMOS_DB_CONNECTION_STR IoTDemonstratorIoTHubConnection=hub1temp AzureSignalRConnectionString=$SIGNALR_CONNECTION_STR"
 
 az group delete -n $RG_NAME
