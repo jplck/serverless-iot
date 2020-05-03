@@ -21,3 +21,14 @@ az storage account create -n $STORAGE_ACC_NAME -g $RG_NAME -l $RG_LOC --sku Stan
 #enabling static website on blob storage
 az storage blob service-properties update --account-name $STORAGE_ACC_NAME --static-website --index-document index.html
 ```
+
+3. Create an Azure API Management. You might choose any tier you want. In my demo I have used the serverless consumption tier. As part of this step we are just setting up the APIM the majority of setup is done in a later step. The easiest way to create an APIM manually is via the portal. If you want to do the setup via the CLI you can referr to the code below.
+
+```
+#creating API Management
+APIM_NAME="$APIM_NAME"
+APIM_PUBLISHER_EMAIL="youremail@example.com"
+APIM_PUBLISHER_ORG="yourorgname"
+
+az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $APIM_PUBLISHER_EMAIL --publisher-name $APIM_PUBLISHER_ORG --name $APIM_NAME
+```
