@@ -112,6 +112,23 @@ SIGNALR_CONNECTION_STR=$(az signalr key list -n $SIGNALR_NAME -g $RG_NAME --quer
 ```
 
 ## Create CosmosDb
+Create a CosmosDb via the Azure portal or the CLI (see below). As API choose Core (SQL). In your newly created CosmosDb create a database and a container. You can do that via the Data Explorer menu item inside you CosmosDb resource. The naming needs to be "devicedata" as the name of your database and "deviceusers" as container name with /deviceId as partition key. Check out the scale settings in Data explorer and select "Autopilot" if available.
+
+```
+COSMOS_NAME="cosmosdbname"
+#Creating cosmosdb service with name $COSMOS_NAME.
+az cosmosdb create -n $COSMOS_NAME -g $RG_NAME --locations regionName=$RG_LOC failoverPriority=0 isZoneRedundant=False
+COSMOS_DB_CONNECTION_STR=$(az cosmosdb keys list -n $COSMOS_NAME -g $RG_NAME --type connection-strings --query "connectionStrings[?description=='Primary SQL Connection String'].connectionString | [0]" | tr -d '"')
+
+COSMOS_DB_NAME="devicedata"
+#Creating cosmosdb database with name $COSMOS_DB_NAME.
+az cosmosdb database create -n $COSMOS_NAME -g $RG_NAME --db-name $COSMOS_DB_NAME
+
+COSMOS_CONTAINER_NAME="deviceusers"
+COSMOS_CONTAINER_PARTITION_KEY="/deviceId"
+#Creating cosmosdb container with name $COSMOS_CONTAINER_NAME and partition key $COSMOS_CONTAINER_PARTITION_KEY.
+az cosmosdb sql container create -g $RG_NAME -a $COSMOS_NAME -d $COSMOS_DB_NAME -n $COSMOS_CONTAINER_NAME --partition-key-path $COSMOS_CONTAINER_PARTITION_KEY --throughput "400"
+```
 
 ## Create IoT Hub
 
