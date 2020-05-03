@@ -28,8 +28,11 @@ echo "done"
 
 #creating API Management
 APIM_NAME="${APP_PREFIX}apim"
+APIM_PUBLISHER_EMAIL="test@example5325235dsgsdgdsg.com"
+APIM_PUBLISHER_ORG="testorg"
+
 echo "Create APIM with name $APIM_NAME"
-az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email test@example5325235dsgsdgdsg.com --publisher-name testorg --name $APIM_NAME
+az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $APIM_PUBLISHER_EMAIL --publisher-name $APIM_PUBLISHER_ORG --name $APIM_NAME
 APIM_GW_HOST=$(az apim list --query "[].hostnameConfigurations[].hostName | [0]" | tr -d '"')
 
 #creating API Management
@@ -52,6 +55,7 @@ az network front-door routing-rule create --front-door-name $FD_NAME --frontend-
 az network front-door routing-rule create --front-door-name $FD_NAME --frontend-endpoints "DefaultFrontendEndpoint" --name "dashboardrule" --resource-group $RG_NAME --route-type Forward --backend-pool $FD_BACKEND_POOL_DASHBOARD_NAME --accepted-protocols Https --patterns "/dashboard/*" --output none
 
 FRONT_DOOR_DASHBOARD_ENDPOINT="https://${FD_NAME}.azurefd.net/${FD_BACKEND_POOL_DASHBOARD_NAME}/"
+echo "done"
 
 #building dashboard
 echo "Building static dashboard..."
@@ -64,9 +68,6 @@ echo "done"
 echo "Deploying static dashboard files into storage account..."
 az storage blob upload-batch -s ./build -d '$web' --account-name $STORAGE_ACC_NAME --output none
 echo "done"
-
-#create app identity in active directory
-#...
 
 #Create signalr service
 SIGNALR_NAME="${APP_PREFIX}signalr"
@@ -123,26 +124,17 @@ SIGNALR_API_IDENT="http://${SIGNALR_APP_NAME}"
 SIGNALR_APP=$(az ad app create --display-name $SIGNALR_APP_NAME --identifier-uris $SIGNALR_API_IDENT)
 SIGNALR_APP_APP_ID=$(echo $SIGNALR_APP | jq -r '.appId')
 DEFAULT_SCOPE=$(az ad app show --id $SIGNALR_APP_APP_ID | jq '.oauth2Permissions[0].isEnabled = false' | jq -r '.oauth2Permissions')
-az ad app update --id $SIGNALR_APP_APP_ID --set oauth2Permissions="$DEFAULT_SCOPE"
-az ad app update --id $SIGNALR_APP_APP_ID --set oauth2Permissions=@signalr_oauth2-permissions.json
 
 DEVICE_SERVICE_APP_NAME="${APP_PREFIX}deviceservice"
 DEVICE_SERVICES_API_IDENT="http://${DEVICE_SERVICE_APP_NAME}"
 DEVICE_SERVICES_APP=$(az ad app create --display-name $DEVICE_SERVICE_APP_NAME --identifier-uris $DEVICE_SERVICES_API_IDENT)
 DEVICE_SERVICES_APP_APP_ID=$(echo $DEVICE_SERVICES_APP | jq -r '.appId')
 DEFAULT_SCOPE=$(az ad app show --id $DEVICE_SERVICES_APP_APP_ID | jq '.oauth2Permissions[0].isEnabled = false' | jq -r '.oauth2Permissions')
-az ad app update --id $DEVICE_SERVICES_APP_APP_ID --set oauth2Permissions="$DEFAULT_SCOPE"
-az ad app update --id $DEVICE_SERVICES_APP_APP_ID --set oauth2Permissions=@device_services_oauth2-permissions.json
 
 DASHBOARD_APP_NAME="${APP_PREFIX}dashboard"
 DASHBOARD_API_IDENT="http://${DASHBOARD_APP_NAME}"
 DASHBOARD_APP=$(az ad app create --display-name $DASHBOARD_APP_NAME --identifier-uris $DASHBOARD_API_IDENT)
 DASHBOARD_APP_APP_ID=$(echo $DASHBOARD_APP | jq -r '.appId')
-
-az ad app permission add --id $DASHBOARD_APP_APP_ID --api $SIGNALR_APP_APP_ID --api-permissions ef198d40-45e1-42c6-bee5-3496b5317711=Scope
-az ad app permission add --id $DASHBOARD_APP_APP_ID --api $DEVICE_SERVICES_APP_APP_ID --api-permissions 6e003432-e10d-4e1e-bad9-741c104188b5=Scope
-
-az ad app permission admin-consent --id $DASHBOARD_APP_APP_ID
 
 FUNC_WEBSOCKET_NAME="${APP_PREFIX}funcsignalr"
 FUNC_WEBSOCKET_STORAGE_NAME="${APP_PREFIX}stor"
@@ -159,6 +151,3 @@ az storage account create -n $FUNC_DEVICE_SERVICES_STORAGE_NAME -g $RG_NAME -l $
 az functionapp create -g RG_NAME --consumption-plan-location $RG_LOC -n FUNC_DEVICE_SERVICES_NAME --os-type Windows --runtime dotnet --storage-account $FUNC_DEVICE_SERVICES_STORAGE_NAME
 az functionapp config appsettings set -n $FUNC_DEVICE_SERVICES_NAME -g $RG_NAME --settings "DeviceUserDBConnectionString=$COSMOS_DB_CONNECTION_STR IoTDemonstratorIoTHubConnection=hub1temp AzureSignalRConnectionString=$SIGNALR_CONNECTION_STR"
 FUNC_DEVICE_SERVICES_HOST_NAME=$(az functionapp show -g $RG_NAME -n $FUNC_DEVICE_SERVICES_NAME --query "defaultHostName" | tr -d '"')
-
-cd ../../scripts/
-./ad.sh
