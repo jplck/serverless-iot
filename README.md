@@ -43,8 +43,8 @@ Here we create your Azure Front Door environment. If you are doing that from the
 
 1. After you have created the Front Door resource in your resource group, go to the Front Door designer.
     1. You should see that the Frontends/domain panel should already contain an entry. The backend pools and routing rules need to be filled in the upcoming steps.
-  * First create the backend pool for your APIM. To do that, open up the "add backend pool forms" by clicking on the blue plus symbol at the top right corner of your backend pool pane.
-    * Set a name. For the demo I recommend "apim"
+    2. First create the backend pool for your APIM. To do that, open up the "add backend pool forms" by clicking on the blue plus symbol at the top right corner of your backend pool pane.
+        1. Set a name. For the demo I recommend "apim"
     * Add a backend
       * Choose "API Management" as Backend host type
       * Select the subscription were your APIM is hosted in
