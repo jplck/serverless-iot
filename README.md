@@ -63,8 +63,14 @@ az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $
       * Priority: 1
       * Weight: 50
     * Leave the rest to the defaults
-
-
+  * Not that we have created the backend pools it is time to setup our routing rules for the APIM and dashboard requests.
+    * Create a new rule by clicking the blue add symbol in the frotdoor designer routing rules pane. In the following I will explain the settings I have setup for the demo environment and both my routing rules.
+      * The process is straight forward. Select a name for your rule. As accepted protocols you select HTTPS.
+        * Patterns to match: For the APIM you should keep the default of "/*". For the dashboard rule you use "/dashboard/*".
+        * Route type: Forward
+        * Backend pool: Select the right backend pool for your routing rule. The dashboard rule gets the dashboard routing rule.
+        * Forwarding protocol should be HTTPS only
+        * All other settings are disabled
 ```
 FD_NAME="nameofyourfrontdoor"
 FD_LB_SETTINGS_NAME="nameofyourfrontdoorlbsettings"
@@ -91,3 +97,20 @@ az network front-door routing-rule create --front-door-name $FD_NAME --frontend-
 
 FRONT_DOOR_DASHBOARD_ENDPOINT="https://${FD_NAME}.azurefd.net/${FD_BACKEND_POOL_DASHBOARD_NAME}/"
 ```
+
+5. Now we create our SignalrR resource. This is a pretty easy step. Go to the portal and search for Signalr. Choose the pricing tier (for demo purposes go with the free tier and a unit count of 1). The Service mode should be "Serverless". 
+
+```
+SIGNALR_NAME="signalrname"
+#Creating signalr service with name $SIGNALR_NAME.
+az signalr create -n $SIGNALR_NAME -g $RG_NAME --sku Standard_S1 --unit-count 1 --service-mode Serverless -l $RG_LOC
+SIGNALR_CONNECTION_STR=$(az signalr key list -n $SIGNALR_NAME -g $RG_NAME --query primaryConnectionString -o tsv)
+```
+
+6. Create CosmosDb
+
+7. Create IoT Hub
+
+8. Setting up functions
+
+9. Bringing it all together
