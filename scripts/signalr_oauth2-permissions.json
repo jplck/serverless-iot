@@ -1,0 +1,16 @@
+{
+    "oauth2Permissions": [
+        {
+            "adminConsentDescription": "websocket",
+            "adminConsentDisplayName": "websocket",
+            "id": "ef198d40-45e1-42c6-bee5-3496b5317711",
+            "isEnabled": true,
+            "lang": null,
+            "origin": "Application",
+            "type": "User",
+            "userConsentDescription": "websocket",
+            "userConsentDisplayName": "websocket",
+            "value": "websocket"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "oauth2Permissions": [
+        {
+            "adminConsentDescription": "deviceservices",
+            "adminConsentDisplayName": "deviceservices",
+            "id": "3753806e-3626-4866-9ad0-82a5a71211e2",
+            "isEnabled": true,
+            "lang": null,
+            "origin": "Application",
+            "type": "User",
+            "userConsentDescription": "deviceservices",
+            "userConsentDisplayName": "deviceservices",
+            "value": "deviceservices"
+        }
+    ]
+}
