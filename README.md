@@ -41,8 +41,8 @@ az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $
 ## Create Azure Front Door
 Here we create your Azure Front Door environment. If you are doing that from the portal you can use the Front Door designer to setup your backends and routing. For this demo you need a routing for both the API Management and the GenericDashboard on you blob storage (hosted as static website).
 
-* After you have created the Front Door resource in your resource group, go to the Front Door designer.
-  * You should see that the Frontends/domain panel should already contain an entry. The backend pools and routing rules need to be filled in the upcoming steps.
+1. After you have created the Front Door resource in your resource group, go to the Front Door designer.
+  1. You should see that the Frontends/domain panel should already contain an entry. The backend pools and routing rules need to be filled in the upcoming steps.
   * First create the backend pool for your APIM. To do that, open up the "add backend pool forms" by clicking on the blue plus symbol at the top right corner of your backend pool pane.
     * Set a name. For the demo I recommend "apim"
     * Add a backend
