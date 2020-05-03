@@ -1,6 +1,7 @@
 # Serverless IoT Demo Project
 
 # Architecture
+![serverless-iot-architecture](/assets/serverless-iot-architecture.png)
 
 # Setup
 To setup the whole environment several steps are required. To ease the process you could checkout the scripts folder and run the files "predeploy.sh" and "deployment.sh". Be careful with the predeploy script as it install additional dependencies onto you machine.
@@ -32,3 +33,5 @@ APIM_PUBLISHER_ORG="yourorgname"
 
 az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $APIM_PUBLISHER_EMAIL --publisher-name $APIM_PUBLISHER_ORG --name $APIM_NAME
 ```
+
+4. 
