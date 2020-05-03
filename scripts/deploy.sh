@@ -35,7 +35,7 @@ echo "Create APIM with name $APIM_NAME"
 az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $APIM_PUBLISHER_EMAIL --publisher-name $APIM_PUBLISHER_ORG --name $APIM_NAME
 APIM_GW_HOST=$(az apim list --query "[].hostnameConfigurations[].hostName | [0]" | tr -d '"')
 
-#creating API Management
+#creating Front Door
 FD_NAME="${APP_PREFIX}azfd"
 FD_LB_SETTINGS_NAME="${APP_PREFIX}azfdlbsettings"
 FD_BACKEND_POOL_APIM_NAME="apim"
