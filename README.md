@@ -45,35 +45,35 @@ Here we create your Azure Front Door environment. If you are doing that from the
     1. You should see that the Frontends/domain panel should already contain an entry. The backend pools and routing rules need to be filled in the upcoming steps.
     2. First create the backend pool for your APIM. To do that, open up the "add backend pool forms" by clicking on the blue plus symbol at the top right corner of your backend pool pane.
         1. Set a name. For the demo I recommend "apim"
-    * Add a backend
-      * Choose "API Management" as Backend host type
-      * Select the subscription were your APIM is hosted in
-      * The backend host name is pre filled (no change needed)
-      * The backend host header should be set to your APIM URI
-      * HTTP Port: 80
-      * HTTPS Port: 443
-      * Priority: 1
-      * Weight: 50
-    * Leave the rest to the defaults
-  * Now we have to create the backend pool for our dashboard application. Create another backend pool by clicking the add symbol.
-    * Set a name. For the demo I recommend "dashboard"
-    * Add a backend
-      * Choose "Custom host" as Backend host type
-      * In the field for your backend host name you need to enter the host name of your static website. Please fill in the URL you have copied in step 2. Please remove the "https://" and enter just the plain URI.
-      * The backend host header: Please fill in the URL you have copied in step 2. Please remove the "https://" and enter just the plain URI.
-      * HTTP Port: 80
-      * HTTPS Port: 443
-      * Priority: 1
-      * Weight: 50
-    * Leave the rest to the defaults
-  * Not that we have created the backend pools it is time to setup our routing rules for the APIM and dashboard requests.
-    * Create a new rule by clicking the blue add symbol in the frotdoor designer routing rules pane. In the following I will explain the settings I have setup for the demo environment and both my routing rules.
-      * The process is straight forward. Select a name for your rule. As accepted protocols you select HTTPS.
-        * Patterns to match: For the APIM you should keep the default of "/*". For the dashboard rule you use "/dashboard/*".
-        * Route type: Forward
-        * Backend pool: Select the right backend pool for your routing rule. The dashboard rule gets the dashboard routing rule.
-        * Forwarding protocol should be HTTPS only
-        * All other settings are disabled
+        2. Add a backend
+            1. Choose "API Management" as Backend host type
+            2. Select the subscription were your APIM is hosted in
+            3. The backend host name is pre filled (no change needed)
+            4. The backend host header should be set to your APIM URI
+            5. HTTP Port: 80
+            6. HTTPS Port: 443
+            7. Priority: 1
+            8. Weight: 50
+        3. Leave the rest to the defaults
+    3. Now we have to create the backend pool for our dashboard application. Create another backend pool by clicking the add symbol.
+        1. Set a name. For the demo I recommend "dashboard"
+        2. Add a backend
+            1. Choose "Custom host" as Backend host type
+            2. In the field for your backend host name you need to enter the host name of your static website. Please fill in the URL you have copied in step 2. Please remove the "https://" and enter just the plain URI.
+            3. The backend host header: Please fill in the URL you have copied in step 2. Please remove the "https://" and enter just the plain URI.
+            4. HTTP Port: 80
+            5. HTTPS Port: 443
+            6. Priority: 1
+            7. Weight: 50
+        3. Leave the rest to the defaults
+    4. Not that we have created the backend pools it is time to setup our routing rules for the APIM and dashboard requests.
+        1. Create a new rule by clicking the blue add symbol in the frotdoor designer routing rules pane. In the following I will explain the settings I have setup for the demo environment and both my routing rules.
+        2. The process is straight forward. Select a name for your rule. As accepted protocols you select HTTPS.
+            1. Patterns to match: For the APIM you should keep the default of "/*". For the dashboard rule you use "/dashboard/*".
+            2. Route type: Forward
+            3. Backend pool: Select the right backend pool for your routing rule. The dashboard rule gets the dashboard routing rule.
+            4. Forwarding protocol should be HTTPS only
+            5. All other settings should be disabled
 ```
 FD_NAME="nameofyourfrontdoor"
 FD_LB_SETTINGS_NAME="nameofyourfrontdoorlbsettings"
