@@ -8,13 +8,14 @@ To setup the whole environment several steps are required. To ease the process y
 
 The deployment script creates resources inside you Azure subscription an sets a lot (currently not all) of the neccessary settings for you. To give you a better understanding on what steps are required, the followig descriptions leads you through the manual setup process. Next to the steps you can execute from the Azure portal I have added the commands you can run from the az CLI.
 
-1. Setup an Azure Resource Group either in the portal or from the CLI.
+## Setup an Azure Resource Group either in the portal or from the CLI.
 
 ```
 az storage account create -n $STORAGE_ACC_NAME -g $RG_NAME -l $RG_LOC --sku Standard_LRS --kind "StorageV2"
 ```
 
-2. Create a storage account to host your static page contents from the GenericDashboard. The naming is up to you. To enable the "static page" mode on the storage account, go click the "Static Website" menu item in your storage account settings and enable the static website. If you like to do all the above mentioned steps on the Azure CLI checkout the following code snipped. In both cases note down the primary endpoint of your static website. In the portal you can find in directly in your static website settings. If you are using the CLI you an use the command below to query for the endpoint after setting the storage account to host a static site.
+## Create a storage account to host your static page contents from the GenericDashboard. 
+Create a new storage account from the azure portal. The naming is up to you. To enable the "static page" mode on the storage account, go click the "Static Website" menu item in your storage account settings and enable the static website. If you like to do all the above mentioned steps on the Azure CLI checkout the following code snipped. In both cases note down the primary endpoint of your static website. In the portal you can find in directly in your static website settings. If you are using the CLI you an use the command below to query for the endpoint after setting the storage account to host a static site.
 
 ```
 STORAGE_ACC_NAME="dashboard"
@@ -25,7 +26,8 @@ az storage blob service-properties update --account-name $STORAGE_ACC_NAME --sta
 DASHBOARD_URL=$(az storage account show --name $STORAGE_ACC_NAME --query 'primaryEndpoints.web' | tr -d '"' | awk -F[/:] '{print $4}')
 ```
 
-3. Create an Azure API Management. You might choose any tier you want. In my demo I have used the serverless consumption tier. As part of this step we are just setting up the APIM the majority of setup is done in a later step. The easiest way to create an APIM manually is via the portal. If you want to do the setup via the CLI you can referr to the code below.
+## Create an Azure API Management. 
+You might choose any tier you want. In my demo I have used the serverless consumption tier. As part of this step we are just setting up the APIM the majority of setup is done in a later step. The easiest way to create an APIM manually is via the portal. If you want to do the setup via the CLI you can referr to the code below.
 
 ```
 #creating API Management
@@ -36,7 +38,8 @@ APIM_PUBLISHER_ORG="yourorgname"
 az apim create -g $RG_NAME -l $RG_LOC --sku-name Consumption --publisher-email $APIM_PUBLISHER_EMAIL --publisher-name $APIM_PUBLISHER_ORG --name $APIM_NAME
 ```
 
-4. The next step creates your Azure Front Door environment. If you are doing that from the portal you can use the Front Door designer to setup your routing. For this demo you need a routing for both the API Management and the GenericDashboard on you blob storage (hosted as static website).
+## Create Azure Front Door
+Here we create your Azure Front Door environment. If you are doing that from the portal you can use the Front Door designer to setup your backends and routing. For this demo you need a routing for both the API Management and the GenericDashboard on you blob storage (hosted as static website).
 
 * After you have created the Front Door resource in your resource group, go to the Front Door designer.
   * You should see that the Frontends/domain panel should already contain an entry. The backend pools and routing rules need to be filled in the upcoming steps.
@@ -98,7 +101,8 @@ az network front-door routing-rule create --front-door-name $FD_NAME --frontend-
 FRONT_DOOR_DASHBOARD_ENDPOINT="https://${FD_NAME}.azurefd.net/${FD_BACKEND_POOL_DASHBOARD_NAME}/"
 ```
 
-5. Now we create our SignalrR resource. This is a pretty easy step. Go to the portal and search for Signalr. Choose the pricing tier (for demo purposes go with the free tier and a unit count of 1). The Service mode should be "Serverless". 
+## Create SignalR
+Now we create our SignalrR resource. This is a pretty easy step. Go to the portal and search for Signalr. Choose the pricing tier (for demo purposes go with the free tier and a unit count of 1). The Service mode should be "Serverless". 
 
 ```
 SIGNALR_NAME="signalrname"
@@ -107,10 +111,10 @@ az signalr create -n $SIGNALR_NAME -g $RG_NAME --sku Standard_S1 --unit-count 1 
 SIGNALR_CONNECTION_STR=$(az signalr key list -n $SIGNALR_NAME -g $RG_NAME --query primaryConnectionString -o tsv)
 ```
 
-6. Create CosmosDb
+## Create CosmosDb
 
-7. Create IoT Hub
+## Create IoT Hub
 
-8. Setting up functions
+## Setting up functions
 
-9. Bringing it all together
+## Bringing it all together
