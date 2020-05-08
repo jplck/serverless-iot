@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Collections.Generic;
+using Aliencube.AzureFunctions.Extensions.OpenApi.Attributes;
+using System.Net;
 
 namespace vehicle_service_signalr_functions
 {
@@ -20,6 +22,9 @@ namespace vehicle_service_signalr_functions
             public string Value { get; set; }
         }
 
+        [OpenApiOperation(operationId: "showUserClaims", tags: new[] { "claims" })]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "JSON string of user claims.")]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.Unauthorized, contentType: "application/json", bodyType: typeof(string), Description = "Not authorized.")]
         [FunctionName("ShowClaimsForUser")]
         public static IActionResult ShowClaimsForUser(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/claims")] HttpRequest req,

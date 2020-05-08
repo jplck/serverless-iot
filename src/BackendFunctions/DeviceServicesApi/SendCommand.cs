@@ -11,6 +11,9 @@ using Microsoft.Azure.Devices.Common.Exceptions;
 using Microsoft.Azure.Documents.Client;
 using System.Security.Claims;
 using System.Linq;
+using Aliencube.AzureFunctions.Extensions.OpenApi.Attributes;
+using System.Net;
+using Microsoft.OpenApi.Models;
 
 namespace vehicle_service_signalr_functions
 {
@@ -19,6 +22,14 @@ namespace vehicle_service_signalr_functions
         private const string dbName = "devicedata";
         private const string collectionName = "deviceusers";
 
+        [OpenApiOperation(operationId: "sendCommand", tags: new[] { "device", "command" })]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "Command response.")]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.Unauthorized, contentType: "application/json", bodyType: typeof(string), Description = "Unauthorized user request.")]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.BadRequest, contentType: "application/json", bodyType: typeof(string), Description = "Bad request due to missing request arguments.")]
+        [OpenApiResponseBody(statusCode: HttpStatusCode.NotFound, contentType: "application/json", bodyType: typeof(string), Description = "Device not found.")]
+        [OpenApiParameter(name: "deviceId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
+        [OpenApiParameter(name: "moduleId", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
+        [OpenApiParameter(name: "action", In = ParameterLocation.Path, Required = true, Type = typeof(string))]
         [FunctionName("SendCommand")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "command/{deviceId}/{moduleId}/{action}")] HttpRequest req, 
